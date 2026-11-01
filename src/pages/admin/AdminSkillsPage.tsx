@@ -28,10 +28,12 @@ export const AdminSkillsPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const loadSkills = async () => {
-    setLoading(true);
-    const data = await getSkills();
-    setSkills(data);
-    setLoading(false);
+    try {
+      const data = await getSkills();
+      setSkills(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -118,52 +120,66 @@ export const AdminSkillsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {skills.map((skill) => (
-                <tr key={skill.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-4">
-                    <div className="font-bold text-white text-xs flex items-center gap-2">
-                      <span>{skill.name}</span>
-                      {skill.featured && <Sparkles className="w-3 h-3 text-amber-400" />}
-                    </div>
-                    <div className="text-[10px] text-slate-400 line-clamp-1 max-w-sm mt-0.5">
-                      {skill.description}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/5 text-[11px] text-slate-300">
-                      {skill.category}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-space-900 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="h-full bg-cyber-cyan rounded-full"
-                          style={{ width: `${skill.proficiency}%` }}
-                        />
-                      </div>
-                      <span className="text-cyber-cyan font-bold">{skill.proficiency}%</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-slate-400">
-                    {skill.years_of_experience} yrs
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => handleEdit(skill)}
-                      className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-cyber-violet hover:bg-cyber-violet/10 transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(skill.id)}
-                      className="p-1.5 rounded bg-white/[0.05] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-cyber-violet animate-pulse">
+                    LOADING TECHNICAL MATRIX...
                   </td>
                 </tr>
-              ))}
+              ) : skills.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-500">
+                    No skills registered yet.
+                  </td>
+                </tr>
+              ) : (
+                skills.map((skill) => (
+                  <tr key={skill.id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="p-4">
+                      <div className="font-bold text-white text-xs flex items-center gap-2">
+                        <span>{skill.name}</span>
+                        {skill.featured && <Sparkles className="w-3 h-3 text-amber-400" />}
+                      </div>
+                      <div className="text-[10px] text-slate-400 line-clamp-1 max-w-sm mt-0.5">
+                        {skill.description}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/5 text-[11px] text-slate-300">
+                        {skill.category}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-space-900 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="h-full bg-cyber-cyan rounded-full"
+                            style={{ width: `${skill.proficiency}%` }}
+                          />
+                        </div>
+                        <span className="text-cyber-cyan font-bold">{skill.proficiency}%</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-slate-400">
+                      {skill.years_of_experience} yrs
+                    </td>
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleEdit(skill)}
+                        className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-cyber-violet hover:bg-cyber-violet/10 transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(skill.id)}
+                        className="p-1.5 rounded bg-white/[0.05] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

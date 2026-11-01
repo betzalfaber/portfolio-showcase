@@ -1,41 +1,63 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// Seeded/deterministic starfield generator outside component render
+function createStarfieldBuffer(count: number): [Float32Array, Float32Array] {
+  const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+
+  const palette = [
+    new THREE.Color('#00f0ff'), // cyan
+    new THREE.Color('#8b5cf6'), // violet
+    new THREE.Color('#38bdf8'), // light blue
+    new THREE.Color('#ffffff'), // pure white
+    new THREE.Color('#00ff88'), // emerald
+  ];
+
+  // Simple LCG pseudo-random generator for deterministic purity
+  let seed = 42;
+  function random(): number {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  }
+
+  for (let i = 0; i < count; i++) {
+    // Spherical distribution
+    const r = 12 + random() * 45;
+    const theta = random() * Math.PI * 2;
+    const phi = Math.acos(2 * random() - 1);
+
+    pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i * 3 + 2] = r * Math.cos(phi);
+
+    const color = palette[Math.floor(random() * palette.length)];
+    col[i * 3] = color.r;
+    col[i * 3 + 1] = color.g;
+    col[i * 3 + 2] = color.b;
+  }
+
+  return [pos, col];
+}
+
 export const StarfieldParticles: React.FC<{ count?: number }> = ({ count = 2200 }) => {
   const pointsRef = useRef<THREE.Points>(null);
+  const geometryRef = useRef<THREE.BufferGeometry>(null);
+  const materialRef = useRef<THREE.PointsMaterial>(null);
 
-  // Generate particle positions and colors
-  const [positions, colors] = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    const col = new Float32Array(count * 3);
+  // Memoize deterministic buffers
+  const [positions, colors] = useMemo(() => createStarfieldBuffer(count), [count]);
 
-    const palette = [
-      new THREE.Color('#00f0ff'), // cyan
-      new THREE.Color('#8b5cf6'), // violet
-      new THREE.Color('#38bdf8'), // light blue
-      new THREE.Color('#ffffff'), // pure white
-      new THREE.Color('#00ff88'), // emerald
-    ];
-
-    for (let i = 0; i < count; i++) {
-      // Spherical distribution
-      const r = 12 + Math.random() * 45;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-
-      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      pos[i * 3 + 2] = r * Math.cos(phi);
-
-      const color = palette[Math.floor(Math.random() * palette.length)];
-      col[i * 3] = color.r;
-      col[i * 3 + 1] = color.g;
-      col[i * 3 + 2] = color.b;
-    }
-
-    return [pos, col];
-  }, [count]);
+  // Asset disposal on unmount
+  useEffect(() => {
+    const geometry = geometryRef.current;
+    const material = materialRef.current;
+    return () => {
+      geometry?.dispose();
+      material?.dispose();
+    };
+  }, []);
 
   useFrame((_state, delta) => {
     if (pointsRef.current) {
@@ -46,7 +68,7 @@ export const StarfieldParticles: React.FC<{ count?: number }> = ({ count = 2200 
 
   return (
     <points ref={pointsRef}>
-      <bufferGeometry>
+      <bufferGeometry ref={geometryRef}>
         <bufferAttribute
           attach="attributes-position"
           args={[positions, 3]}
@@ -57,6 +79,7 @@ export const StarfieldParticles: React.FC<{ count?: number }> = ({ count = 2200 
         />
       </bufferGeometry>
       <pointsMaterial
+        ref={materialRef}
         size={0.12}
         vertexColors
         transparent

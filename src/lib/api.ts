@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { sanitizeText, sanitizeEmail, checkSubmissionRateLimit, recordSubmissionTimestamp } from './security';
 import {
   Profile,
   Project,
@@ -472,14 +473,38 @@ export async function saveSocialLink(link: Partial<SocialLink>): Promise<SocialL
 // Contact Messages API
 // ----------------------------------------------------------------------
 export async function submitContactMessage(msg: { name: string; email: string; subject: string; message: string }): Promise<void> {
+  const rateLimit = checkSubmissionRateLimit();
+  if (!rateLimit.allowed) {
+    throw new Error(`Rate limit exceeded. Please wait ${rateLimit.remainingSeconds}s before submitting again.`);
+  }
+
+  const cleanName = sanitizeText(msg.name, 100);
+  const cleanEmail = sanitizeEmail(msg.email);
+  const cleanSubject = sanitizeText(msg.subject, 200);
+  const cleanMessage = sanitizeText(msg.message, 5000);
+
+  if (!cleanName || cleanName.length < 2) {
+    throw new Error('Name must be at least 2 characters.');
+  }
+  if (!cleanEmail) {
+    throw new Error('Please provide a valid email address.');
+  }
+  if (!cleanSubject || cleanSubject.length < 3) {
+    throw new Error('Subject must be at least 3 characters.');
+  }
+  if (!cleanMessage || cleanMessage.length < 10) {
+    throw new Error('Message must be at least 10 characters.');
+  }
+
   if (isSupabaseConfigured) {
     const { error } = await supabase.from('contact_messages').insert({
-      name: msg.name.trim(),
-      email: msg.email.trim(),
-      subject: msg.subject.trim(),
-      message: msg.message.trim(),
+      name: cleanName,
+      email: cleanEmail,
+      subject: cleanSubject,
+      message: cleanMessage,
     });
     if (error) throw new Error(error.message);
+    recordSubmissionTimestamp();
     return;
   }
 
@@ -487,14 +512,15 @@ export async function submitContactMessage(msg: { name: string; email: string; s
   const messages = getLocalData<ContactMessage[]>(LOCAL_STORAGE_KEYS.MESSAGES, []);
   const newMsg: ContactMessage = {
     id: crypto.randomUUID(),
-    name: msg.name,
-    email: msg.email,
-    subject: msg.subject,
-    message: msg.message,
+    name: cleanName,
+    email: cleanEmail,
+    subject: cleanSubject,
+    message: cleanMessage,
     is_read: false,
     created_at: new Date().toISOString(),
   };
   setLocalData(LOCAL_STORAGE_KEYS.MESSAGES, [newMsg, ...messages]);
+  recordSubmissionTimestamp();
 }
 
 export async function getContactMessages(): Promise<ContactMessage[]> {

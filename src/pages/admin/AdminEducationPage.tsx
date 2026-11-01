@@ -18,10 +18,12 @@ export const AdminEducationPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const loadData = async () => {
-    setLoading(true);
-    const data = await getEducation();
-    setEducationList(data);
-    setLoading(false);
+    try {
+      const data = await getEducation();
+      setEducationList(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -98,7 +100,16 @@ export const AdminEducationPage: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {educationList.map((edu) => (
+        {loading ? (
+          <div className="glass-panel p-8 rounded-2xl border border-white/10 text-center font-mono text-xs text-amber-400 animate-pulse">
+            LOADING ACADEMIC RECORDS...
+          </div>
+        ) : educationList.length === 0 ? (
+          <div className="glass-panel p-8 rounded-2xl border border-white/10 text-center font-mono text-xs text-slate-500">
+            No academic qualifications registered yet.
+          </div>
+        ) : (
+          educationList.map((edu) => (
           <div
             key={edu.id}
             className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-start justify-between gap-4"
@@ -138,7 +149,7 @@ export const AdminEducationPage: React.FC = () => {
               </button>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {/* Modal */}

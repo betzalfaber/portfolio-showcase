@@ -6,9 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#030712" />
     <meta name="description" content="NEXUS — An immersive 3D personal portfolio platform showcasing software engineering projects, technical skills, credentials, and achievements in an interactive digital universe." />
+    <meta name="robots" content="index, follow" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NEXUS Portfolio" />
     <meta property="og:title" content="NEXUS — Premium 3D Personal Portfolio Platform" />
     <meta property="og:description" content="Explore projects, verified certificates, and engineering capabilities in an interactive 3D universe." />
-    <meta property="og:type" content="website" />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NEXUS — Premium 3D Personal Portfolio Platform" />
+    <meta name="twitter:description" content="Explore projects, verified certificates, and engineering capabilities in an interactive 3D universe." />
     <title>NEXUS — 3D Portfolio Platform</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,6 +23,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
   </head>
   <body class="bg-space-950 text-slate-100 antialiased overflow-x-hidden selection:bg-cyber-cyan/30 selection:text-white">
+    <noscript>
+      <div style="padding: 2rem; text-align: center; font-family: sans-serif; background: #030712; color: #f8fafc;">
+        <h2>JavaScript Required</h2>
+        <p>NEXUS requires JavaScript enabled to render its interactive 3D universe and portfolio features.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

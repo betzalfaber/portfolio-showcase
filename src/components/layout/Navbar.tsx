@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Menu,
   X,
@@ -9,7 +9,7 @@ import {
   ExternalLink,
   Lock
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 interface NavItem {
   label: string;
@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.08] bg-space-950/80 backdrop-blur-xl transition-all">
@@ -102,7 +103,8 @@ export const Navbar: React.FC = () => {
           <Link
             to={user ? '/admin/dashboard' : '/admin/login'}
             className="p-2 rounded-md border border-white/10 text-slate-300"
-            title="Admin Login"
+            title={user ? 'Administrator Dashboard' : 'Admin Login'}
+            aria-label={user ? 'Administrator Dashboard' : 'Admin Login'}
           >
             <Lock className="w-4 h-4" />
           </Link>
@@ -110,6 +112,7 @@ export const Navbar: React.FC = () => {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-md border border-white/10 text-slate-300 hover:text-white focus:outline-none"
             aria-label="Toggle Navigation Menu"
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -123,6 +126,7 @@ export const Navbar: React.FC = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
             className="lg:hidden border-b border-white/10 bg-space-900/95 backdrop-blur-2xl px-4 py-4 space-y-2 overflow-hidden"
           >
             {navItems.map((item) => (

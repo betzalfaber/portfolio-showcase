@@ -8,7 +8,6 @@ import {
   Trash2,
   Search,
   Sparkles,
-  ExternalLink,
   Upload,
   X,
   AlertCircle
@@ -32,10 +31,12 @@ export const AdminCertificatesPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const loadCerts = async () => {
-    setLoading(true);
-    const data = await getCertificates();
-    setCertificates(data);
-    setLoading(false);
+    try {
+      const data = await getCertificates();
+      setCertificates(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -173,68 +174,82 @@ export const AdminCertificatesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filtered.map((cert) => (
-                <tr key={cert.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-4 flex items-center gap-3">
-                    <img
-                      src={cert.image_preview}
-                      alt={cert.name}
-                      className="w-10 h-7 rounded object-cover bg-space-900 shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <div className="font-bold text-white text-xs truncate max-w-xs">{cert.name}</div>
-                      <div className="text-[10px] text-slate-500 truncate">ID: {cert.credential_id}</div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-slate-300">{cert.issuing_organization}</span>
-                  </td>
-                  <td className="p-4 text-slate-400">
-                    {cert.issue_date}
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleTogglePublish(cert)}
-                      className={`px-2.5 py-1 rounded text-[11px] font-bold ${
-                        cert.is_published
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-slate-700/50 text-slate-400 border border-slate-600'
-                      }`}
-                    >
-                      {cert.is_published ? 'Published' : 'Draft'}
-                    </button>
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={async () => {
-                        const updated = await saveCertificate({ ...cert, featured: !cert.featured });
-                        setCertificates(certificates.map((c) => (c.id === updated.id ? updated : c)));
-                      }}
-                      className={`p-1.5 rounded transition-colors ${
-                        cert.featured ? 'text-amber-400 bg-amber-500/10' : 'text-slate-600 hover:text-slate-400'
-                      }`}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                    </button>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => handleEdit(cert)}
-                      className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                      title="Edit credential"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(cert.id)}
-                      className="p-1.5 rounded bg-white/[0.05] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                      title="Delete credential"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-emerald-400 animate-pulse">
+                    LOADING CERTIFICATES REGISTRY...
                   </td>
                 </tr>
-              ))}
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-slate-500">
+                    No matching credentials found.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((cert) => (
+                  <tr key={cert.id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="p-4 flex items-center gap-3">
+                      <img
+                        src={cert.image_preview}
+                        alt={cert.name}
+                        className="w-10 h-7 rounded object-cover bg-space-900 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <div className="font-bold text-white text-xs truncate max-w-xs">{cert.name}</div>
+                        <div className="text-[10px] text-slate-500 truncate">ID: {cert.credential_id}</div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-slate-300">{cert.issuing_organization}</span>
+                    </td>
+                    <td className="p-4 text-slate-400">
+                      {cert.issue_date}
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => handleTogglePublish(cert)}
+                        className={`px-2.5 py-1 rounded text-[11px] font-bold ${
+                          cert.is_published
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600'
+                        }`}
+                      >
+                        {cert.is_published ? 'Published' : 'Draft'}
+                      </button>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={async () => {
+                          const updated = await saveCertificate({ ...cert, featured: !cert.featured });
+                          setCertificates(certificates.map((c) => (c.id === updated.id ? updated : c)));
+                        }}
+                        className={`p-1.5 rounded transition-colors ${
+                          cert.featured ? 'text-amber-400 bg-amber-500/10' : 'text-slate-600 hover:text-slate-400'
+                        }`}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                      </button>
+                    </td>
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleEdit(cert)}
+                        className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                        title="Edit credential"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(cert.id)}
+                        className="p-1.5 rounded bg-white/[0.05] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        title="Delete credential"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

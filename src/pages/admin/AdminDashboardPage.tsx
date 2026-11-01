@@ -13,10 +13,8 @@ import {
   Award,
   Cpu,
   Mail,
-  ArrowRight,
   Trash2,
   CheckCircle2,
-  Sparkles,
   ExternalLink,
   Plus
 } from 'lucide-react';
@@ -29,18 +27,20 @@ export const AdminDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
-    setLoading(true);
-    const [p, c, s, m] = await Promise.all([
-      getProjects(),
-      getCertificates(),
-      getSkills(),
-      getContactMessages(),
-    ]);
-    setProjects(p);
-    setCertificates(c);
-    setSkills(s);
-    setMessages(m);
-    setLoading(false);
+    try {
+      const [p, c, s, m] = await Promise.all([
+        getProjects(),
+        getCertificates(),
+        getSkills(),
+        getContactMessages(),
+      ]);
+      setProjects(p);
+      setCertificates(c);
+      setSkills(s);
+      setMessages(m);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -56,6 +56,14 @@ export const AdminDashboardPage: React.FC = () => {
 
   const publishedProjects = projects.filter((p) => p.is_published).length;
   const publishedCerts = certificates.filter((c) => c.is_published).length;
+
+  if (loading) {
+    return (
+      <div className="py-20 text-center font-mono text-xs text-cyber-cyan animate-pulse">
+        SYNCHRONIZING OPERATIONAL METRICS...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

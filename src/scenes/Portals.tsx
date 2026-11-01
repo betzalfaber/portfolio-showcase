@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { Sparkles, ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface PortalData {
   id: string;

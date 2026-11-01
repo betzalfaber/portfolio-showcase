@@ -8,25 +8,33 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Dependencies
-node_modules
+node_modules/
+.pnp
+.pnp.js
 
 # Build artifacts & temp
-dist
-dist-ssr
+dist/
+dist-ssr/
+.vite/
 *.tsbuildinfo
 vite.config.d.ts
 vite.config.js
+.vercel
 
 # Environment files
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj

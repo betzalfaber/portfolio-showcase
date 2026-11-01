@@ -6,12 +6,10 @@ import {
   Settings,
   Plus,
   Edit2,
-  Trash2,
   Share2,
   Database,
   ShieldCheck,
   Download,
-  AlertTriangle,
   X
 } from 'lucide-react';
 
@@ -19,10 +17,15 @@ export const AdminSettingsPage: React.FC = () => {
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [editingLink, setEditingLink] = useState<Partial<SocialLink> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
-    const data = await getSocialLinks();
-    setLinks(data);
+    try {
+      const data = await getSocialLinks();
+      setLinks(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -104,29 +107,36 @@ export const AdminSettingsPage: React.FC = () => {
         </div>
 
         <div className="space-y-3">
-          {links.map((link) => (
-            <div
-              key={link.id}
-              className="flex items-center justify-between p-3.5 rounded-xl bg-space-950/60 border border-white/5 text-xs font-mono"
-            >
-              <div className="space-y-0.5">
-                <div className="font-bold text-white flex items-center gap-2">
-                  <span>{link.label}</span>
-                  <span className="text-[10px] text-slate-500 uppercase">({link.platform})</span>
+          {loading ? (
+            <div className="py-6 text-center text-xs font-mono text-slate-500">Loading social links...</div>
+          ) : links.length === 0 ? (
+            <div className="py-6 text-center text-xs font-mono text-slate-500">No social endpoints configured.</div>
+          ) : (
+            links.map((link) => (
+              <div
+                key={link.id}
+                className="flex items-center justify-between p-3.5 rounded-xl bg-space-950/60 border border-white/5 text-xs font-mono"
+              >
+                <div className="space-y-0.5">
+                  <div className="font-bold text-white flex items-center gap-2">
+                    <span>{link.label}</span>
+                    <span className="text-[10px] text-slate-500 uppercase">({link.platform})</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 truncate max-w-md">{link.url}</div>
                 </div>
-                <div className="text-[11px] text-slate-400 truncate max-w-md">{link.url}</div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleEdit(link)}
-                  className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-white"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEdit(link)}
+                    className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-white"
+                    aria-label={`Edit ${link.label} endpoint`}
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

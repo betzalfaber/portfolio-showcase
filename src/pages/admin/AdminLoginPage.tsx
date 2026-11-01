@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import {
   Lock,
   Mail,
@@ -8,9 +8,7 @@ import {
   Sparkles,
   AlertCircle,
   Loader2,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle
+  ShieldCheck
 } from 'lucide-react';
 
 export const AdminLoginPage: React.FC = () => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAchievements } from '../lib/api';
 import { Achievement } from '../types';
-import { Trophy, Award, Star, ExternalLink, Calendar, Sparkles } from 'lucide-react';
+import { Trophy, Award, Star, ExternalLink, Calendar } from 'lucide-react';
 
 export const AchievementsPage: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);

@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Github, Linkedin, Mail, Twitter, ShieldCheck } from 'lucide-react';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export const Footer: React.FC = () => {
   return (
     <footer className="w-full border-t border-white/[0.08] bg-space-950 text-slate-400 text-xs font-mono py-12 relative overflow-hidden">
@@ -133,7 +135,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-white/[0.06] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-          <p>© {new Date().getFullYear()} NEXUS Core. Designed for high performance and modular extensibility.</p>
+          <p>© {CURRENT_YEAR} NEXUS Core. Designed for high performance and modular extensibility.</p>
           <div className="flex items-center gap-4">
             <Link to="/about" className="hover:text-slate-400">Security Policy</Link>
             <span>•</span>

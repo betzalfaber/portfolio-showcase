@@ -6,14 +6,10 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Check,
   X,
   Search,
   Sparkles,
-  ExternalLink,
-  Github,
   Upload,
-  Loader2,
   AlertCircle
 } from 'lucide-react';
 
@@ -35,10 +31,12 @@ export const AdminProjectsPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const loadProjects = async () => {
-    setLoading(true);
-    const data = await getProjects();
-    setProjects(data);
-    setLoading(false);
+    try {
+      const data = await getProjects();
+      setProjects(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -112,7 +110,7 @@ export const AdminProjectsPage: React.FC = () => {
     }
 
     try {
-      const saved = await saveProject(editingProject);
+      await saveProject(editingProject);
       await loadProjects();
       setIsModalOpen(false);
     } catch (err: unknown) {
@@ -182,65 +180,79 @@ export const AdminProjectsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filtered.map((proj) => (
-                <tr key={proj.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-4 flex items-center gap-3">
-                    <img
-                      src={proj.cover_image}
-                      alt={proj.title}
-                      className="w-12 h-8 rounded object-cover bg-space-900 shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <div className="font-bold text-white text-xs truncate max-w-xs">{proj.title}</div>
-                      <div className="text-[10px] text-slate-500 truncate">/{proj.slug}</div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/5 text-[11px] text-slate-300">
-                      {proj.category}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleTogglePublish(proj)}
-                      className={`px-2.5 py-1 rounded text-[11px] font-bold ${
-                        proj.is_published
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-slate-700/50 text-slate-400 border border-slate-600'
-                      }`}
-                    >
-                      {proj.is_published ? 'Published' : 'Draft'}
-                    </button>
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleToggleFeatured(proj)}
-                      className={`p-1.5 rounded transition-colors ${
-                        proj.featured ? 'text-amber-400 bg-amber-500/10' : 'text-slate-600 hover:text-slate-400'
-                      }`}
-                      title={proj.featured ? 'Unfeature' : 'Feature on homepage'}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                    </button>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => handleEdit(proj)}
-                      className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors"
-                      title="Edit project"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(proj.id)}
-                      className="p-1.5 rounded bg-white/[0.05] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                      title="Delete project"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-cyber-cyan animate-pulse">
+                    LOADING PROJECTS REPOSITORY...
                   </td>
                 </tr>
-              ))}
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-500">
+                    No matching projects found.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((proj) => (
+                  <tr key={proj.id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="p-4 flex items-center gap-3">
+                      <img
+                        src={proj.cover_image}
+                        alt={proj.title}
+                        className="w-12 h-8 rounded object-cover bg-space-900 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <div className="font-bold text-white text-xs truncate max-w-xs">{proj.title}</div>
+                        <div className="text-[10px] text-slate-500 truncate">/{proj.slug}</div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/5 text-[11px] text-slate-300">
+                        {proj.category}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => handleTogglePublish(proj)}
+                        className={`px-2.5 py-1 rounded text-[11px] font-bold ${
+                          proj.is_published
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600'
+                        }`}
+                      >
+                        {proj.is_published ? 'Published' : 'Draft'}
+                      </button>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => handleToggleFeatured(proj)}
+                        className={`p-1.5 rounded transition-colors ${
+                          proj.featured ? 'text-amber-400 bg-amber-500/10' : 'text-slate-600 hover:text-slate-400'
+                        }`}
+                        title={proj.featured ? 'Unfeature' : 'Feature on homepage'}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                      </button>
+                    </td>
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleEdit(proj)}
+                        className="p-1.5 rounded bg-white/[0.05] text-slate-300 hover:text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors"
+                        title="Edit project"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(proj.id)}
+                        className="p-1.5 rounded bg-white/[0.05] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        title="Delete project"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

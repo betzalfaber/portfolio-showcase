@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getProfile, getSocialLinks, submitContactMessage } from '../lib/api';
+import { checkSubmissionRateLimit, sanitizeText, sanitizeEmail } from '../lib/security';
 import { Profile, SocialLink } from '../types';
 import {
   Send,
@@ -41,17 +42,21 @@ export const ContactPage: React.FC = () => {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!formData.name.trim() || formData.name.trim().length < 2) {
+    const cleanName = sanitizeText(formData.name, 100);
+    const cleanEmail = sanitizeEmail(formData.email);
+    const cleanSubject = sanitizeText(formData.subject, 200);
+    const cleanMessage = sanitizeText(formData.message, 5000);
+
+    if (!cleanName || cleanName.length < 2) {
       errs.name = 'Please provide your name (at least 2 characters).';
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+    if (!cleanEmail) {
       errs.email = 'Please provide a valid email address.';
     }
-    if (!formData.subject.trim() || formData.subject.trim().length < 3) {
+    if (!cleanSubject || cleanSubject.length < 3) {
       errs.subject = 'Please specify a subject (at least 3 characters).';
     }
-    if (!formData.message.trim() || formData.message.trim().length < 10) {
+    if (!cleanMessage || cleanMessage.length < 10) {
       errs.message = 'Please input a detailed message (minimum 10 characters).';
     }
     setErrors(errs);
@@ -62,11 +67,22 @@ export const ContactPage: React.FC = () => {
     e.preventDefault();
     setSubmitError(null);
 
+    const rateLimit = checkSubmissionRateLimit();
+    if (!rateLimit.allowed) {
+      setSubmitError(`Transmission cooldown active. Please wait ${rateLimit.remainingSeconds}s before sending another message.`);
+      return;
+    }
+
     if (!validate()) return;
 
     setIsSubmitting(true);
     try {
-      await submitContactMessage(formData);
+      await submitContactMessage({
+        name: sanitizeText(formData.name, 100),
+        email: sanitizeEmail(formData.email),
+        subject: sanitizeText(formData.subject, 200),
+        message: sanitizeText(formData.message, 5000),
+      });
       setIsSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (err: unknown) {

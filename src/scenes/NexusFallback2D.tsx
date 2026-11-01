@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ShieldCheck, Cpu, FolderGit2, Award, GraduationCap } from 'lucide-react';
+import { Sparkles, ArrowRight, Cpu, FolderGit2, Award, GraduationCap } from 'lucide-react';
 import { prefersReducedMotion } from '../lib/webgl';
 
 interface FallbackNode {

@@ -28,10 +28,12 @@ export const AdminAchievementsPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const loadData = async () => {
-    setLoading(true);
-    const data = await getAchievements();
-    setAchievements(data);
-    setLoading(false);
+    try {
+      const data = await getAchievements();
+      setAchievements(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -105,7 +107,16 @@ export const AdminAchievementsPage: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {achievements.map((ach) => (
+        {loading ? (
+          <div className="glass-panel p-8 rounded-2xl border border-white/10 text-center font-mono text-xs text-amber-400 animate-pulse">
+            AUDITING HONORS REGISTRY...
+          </div>
+        ) : achievements.length === 0 ? (
+          <div className="glass-panel p-8 rounded-2xl border border-white/10 text-center font-mono text-xs text-slate-500">
+            No achievements recorded yet.
+          </div>
+        ) : (
+          achievements.map((ach) => (
           <div
             key={ach.id}
             className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-start justify-between gap-4"
@@ -157,7 +168,7 @@ export const AdminAchievementsPage: React.FC = () => {
               </button>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {/* Modal */}

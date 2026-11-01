@@ -1,9 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
-import { NexusCanvas } from '../scenes/NexusCanvas';
 import { getProjects, getCertificates, getProfile } from '../lib/api';
 import { Project, Certificate, Profile } from '../types';
-import { Sparkles, ArrowRight, ShieldCheck, FolderGit2, Award, Terminal } from 'lucide-react';
+import { ArrowRight, ShieldCheck, FolderGit2, Award, Terminal, Loader2 } from 'lucide-react';
+import { WebGLErrorBoundary } from '../components/ui/WebGLErrorBoundary';
+import { NexusFallback2D } from '../scenes/NexusFallback2D';
+
+// Code-split 3D WebGL scene to ensure immediate initial DOM render
+const NexusCanvas = lazy(() =>
+  import('../scenes/NexusCanvas').then((module) => ({ default: module.NexusCanvas }))
+);
+
+function CanvasFallbackSkeleton() {
+  return (
+    <div className="relative w-full h-[calc(100vh-4rem)] min-h-[640px] bg-space-950 flex flex-col items-center justify-center gap-3">
+      <Loader2 className="w-10 h-10 animate-spin text-cyber-cyan" aria-hidden="true" />
+      <span className="font-mono text-xs uppercase tracking-widest text-slate-300">
+        Initializing Nexus Spatial Engine...
+      </span>
+    </div>
+  );
+}
 
 export const HomePage: React.FC = () => {
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
@@ -26,20 +43,24 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full">
-      {/* 3D Interactive Spatial Environment */}
-      <section className="w-full relative" aria-label="3D Nexus Universe">
-        <NexusCanvas />
+      {/* 3D Interactive Spatial Environment with WebGL Error Boundary Protection */}
+      <section className="w-full relative" aria-label="3D Nexus Interactive Universe">
+        <WebGLErrorBoundary fallback={<NexusFallback2D />}>
+          <Suspense fallback={<CanvasFallbackSkeleton />}>
+            <NexusCanvas />
+          </Suspense>
+        </WebGLErrorBoundary>
       </section>
 
       {/* Below the fold: Architectural Highlights */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-24">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-24" aria-label="Architectural Highlights">
         {/* Architect Profile Brief */}
         <div className="glass-panel rounded-3xl p-8 sm:p-12 relative overflow-hidden border border-white/10">
           <div className="absolute top-0 right-0 w-96 h-96 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 justify-between">
             <div className="space-y-4 max-w-2xl text-center md:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono">
-                <Terminal className="w-3.5 h-3.5" />
+                <Terminal className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>NEXUS ARCHITECT DOSSIER</span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-wide">
@@ -67,14 +88,14 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-col gap-3 shrink-0 w-full sm:w-auto">
               <Link
                 to="/about"
-                className="px-6 py-3 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan/50 text-cyber-cyan font-mono text-xs uppercase tracking-wider text-center hover:bg-cyber-cyan/30 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3 rounded-xl bg-cyber-cyan/20 border border-cyber-cyan/50 text-cyber-cyan font-mono text-xs uppercase tracking-wider text-center hover:bg-cyber-cyan/30 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-cyber-cyan"
               >
                 <span>Read Full Dossier</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
               <Link
                 to="/contact"
-                className="px-6 py-3 rounded-xl glass-panel-interactive text-white font-mono text-xs uppercase tracking-wider text-center"
+                className="px-6 py-3 rounded-xl glass-panel-interactive text-white font-mono text-xs uppercase tracking-wider text-center focus:outline-none focus:ring-2 focus:ring-cyber-cyan"
               >
                 Initiate Contact
               </Link>
@@ -87,7 +108,7 @@ export const HomePage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-cyber-cyan text-xs font-mono uppercase tracking-widest mb-1">
-                <FolderGit2 className="w-4 h-4" />
+                <FolderGit2 className="w-4 h-4" aria-hidden="true" />
                 <span>Selected Systems</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-white">
@@ -99,15 +120,14 @@ export const HomePage: React.FC = () => {
               className="text-xs font-mono text-cyber-cyan hover:text-white flex items-center gap-1 transition-colors"
             >
               <span>View All Projects ({featuredProjects.length}+)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {featuredProjects.map((project) => (
-              <Link
+              <article
                 key={project.id}
-                to={`/projects/${project.slug}`}
                 className="group rounded-2xl glass-panel-interactive overflow-hidden flex flex-col border border-white/10 hover:border-cyber-cyan/40"
               >
                 <div className="relative aspect-video overflow-hidden bg-space-900">
@@ -117,15 +137,17 @@ export const HomePage: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-space-950/80 backdrop-blur-md border border-cyber-cyan/40 text-[10px] font-mono text-cyber-cyan">
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-space-950/80 backdrop-blur-md border border-cyber-cyan/40 text-[10px] font-mono text-cyber-cyan">
                     {project.category}
                   </div>
                 </div>
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div className="space-y-2">
-                    <h3 className="font-display font-bold text-base text-white group-hover:text-cyber-cyan transition-colors line-clamp-1">
-                      {project.title}
-                    </h3>
+                    <Link to={`/projects/${project.slug}`}>
+                      <h3 className="font-display font-bold text-base text-white group-hover:text-cyber-cyan transition-colors line-clamp-1">
+                        {project.title}
+                      </h3>
+                    </Link>
                     <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
                       {project.short_description}
                     </p>
@@ -146,7 +168,7 @@ export const HomePage: React.FC = () => {
                     )}
                   </div>
                 </div>
-              </Link>
+              </article>
             ))}
           </div>
         </div>
@@ -156,7 +178,7 @@ export const HomePage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono uppercase tracking-widest mb-1">
-                <Award className="w-4 h-4" />
+                <Award className="w-4 h-4" aria-hidden="true" />
                 <span>Validated Credentials</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-white">
@@ -168,13 +190,13 @@ export const HomePage: React.FC = () => {
               className="text-xs font-mono text-emerald-400 hover:text-white flex items-center gap-1 transition-colors"
             >
               <span>Explore Certificate Registry</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {featuredCerts.map((cert) => (
-              <div
+              <article
                 key={cert.id}
                 className="rounded-2xl glass-panel p-6 border border-white/10 flex flex-col justify-between space-y-4 relative overflow-hidden"
               >
@@ -203,14 +225,14 @@ export const HomePage: React.FC = () => {
                     className="text-xs font-mono text-cyber-cyan hover:underline flex items-center gap-1"
                   >
                     <span>Verify Credential</span>
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className="w-3 h-3" aria-hidden="true" />
                   </a>
                   <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400">
-                    <ShieldCheck className="w-3 h-3" />
+                    <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Active</span>
                   </span>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>

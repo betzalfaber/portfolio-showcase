@@ -10,7 +10,6 @@ import {
   Layers,
   Cpu,
   CheckCircle2,
-  Calendar,
   FolderGit2
 } from 'lucide-react';
 
